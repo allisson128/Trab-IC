@@ -26,8 +26,10 @@ def main():
     print "G1: Nodes %d, Edges %d" % (G1.GetNodes(), G1.GetEdges())
     print ffitness(G1)
 
-    # for NI in G1.Nodes():
-    #     print "node id %d with degree %d" % (NI.GetId(), NI.GetDeg())
+    lines = [(NI.GetId(),NI.GetDeg()) for NI in G1.Nodes()]
+    lines = sorted(lines, key=lambda grau: grau[1])
+    print lines
+#        print "node id %d with degree %d" % (NI.GetId(), NI.GetDeg())
     # for EI in G1.Edges():
     #     print "edge (%d, %d)" % (EI.GetSrcNId(), EI.GetDstNId())
     # Graph = snap.GenRndGnm(snap.PNGraph, 50, 500)
