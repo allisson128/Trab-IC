@@ -1,6 +1,7 @@
 import snap
 import matplotlib.pyplot as plt
 
+
 def ffitness (Graph):
     return 2.*Graph.GetEdges()/((Graph.GetNodes()-1)*Graph.GetNodes())
 
@@ -39,6 +40,20 @@ def main():
     #     print N
     #      nodes.Add(N)
     #print nodes
+
+intervalo = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20]
+
+plt.plot(intervalo,intervalo,'purple')
+plt.ylabel("Porcentagem da Diversidade")
+plt.xlabel("Intervalo")
+plt.title("Diversidade")
+plt.show()
+
+#plt.ylabel("Acerto de Genes")
+#plt.xlabel("Numero da Populacao")
+#plt.title("Desempenho da Melhor Solucao")
+#plt.plot(desempenho,'purple')
+#plt.show()
 
 
 
