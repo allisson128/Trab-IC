@@ -1,4 +1,5 @@
 import snap
+import random
 
 def ffitness (Graph):
     return 2.*Graph.GetEdges()/((Graph.GetNodes()-1)*Graph.GetNodes())
@@ -62,7 +63,8 @@ def main():
     # Lista de Tuplas ( ID, Grau ) de todos os vertices do grafo G
     lstIdGrau = lstTuplasIdGrau(G)
     # Mesma lista, ordenada por grau
-    lstIdGrauOrdenada = sorted(lstIdGrau, key=lambda grau: grau[1])
+    lstIdGrauOrdenada = sorted(lstIdGrau, key=lambda grau: grau[1], reverse=True)
+    ###### print lstIdGrauOrdenada
     # Lista para armazenar Vetor de Inteiros da biblioteca Snap, com os vertices de cada grupo 
     SNAPIntVet = []
 
@@ -79,18 +81,18 @@ def main():
     for i in range(0,6):
         lstGrupoGrafo[i] = snap.GetSubGraph(G, SNAPIntVet[i])
 
-    # Mostra as Listas com os nos de cada grupo (subgrafo) e sua densidade
-    showEachGroup(lstGrupoGrafo)
-    print max(lstDensidadeGrafos(lstGrupoGrafo), key=float)
     
     #############################################################  
     #                                              --->Fim      #  
     #                                              |            #
     #Iteracao entre todas as fases do AG: Ini--->Aval->Sel->Rec #  
     #                                              ^         |  #  
-    #                                              |_________|  #  
+    #                                              |___Mut___|  #  
     #############################################################  
-    for it in range(0,20): #Limite de 20 iteracoes
+
+    flag = 0 #indica se saiu do loop com fracasso
+
+    for it in range(0,2000): #Limite de 20 iteracoes
 
         #########################################################
         #                   FASE de Avaliacao                   #
@@ -99,6 +101,9 @@ def main():
         # continua para as demais fases.                        #
         #########################################################
         
+        # Mostra as Listas com os nos de cada grupo (subgrafo) e sua densidade
+        showEachGroup(lstGrupoGrafo)
+
         ########### Grafo de Maior Densidade ####################
         maior = segundoMaior = 0
         indiceMaior = indiceSegundoMaior = 0
@@ -114,7 +119,7 @@ def main():
                 indiceSegundoMaior = count
             count = count + 1
 
-        print maior, indiceMaior, segundoMaior, indiceSegundoMaior
+        ##### print maior, indiceMaior, segundoMaior, indiceSegundoMaior
 
         ########### Grafo de Menor Densidade ####################
         menor = segundoMenor = 2
@@ -132,8 +137,23 @@ def main():
                 indiceSegundoMenor = count
             count = count + 1
 
-        print menor, indiceMenor, segundoMenor, indiceSegundoMenor
+        ##### print menor, indiceMenor, segundoMenor, indiceSegundoMenor
 
+        ########################################################
+        #               Condicoes de Parada                    #
+        ########################################################
+        if maior == 1:
+            print 'GOAL'
+            flag = 1
+            break
+        elif it > 20 and maior > .9:
+            print ''
+            print 'Resultado Aceitavel na iteracao ', it
+            print 'Subgrafo correspondente: '
+            print lstGrupo[indiceMaior]
+            print 'Densidade do grafo', maior, ' maior que 0.9'
+            flag = 1
+            break
 
         #########################################################
         #                   FASE de Selecao                     #
@@ -142,21 +162,102 @@ def main():
         # continua para as demais fases.                        #
         #########################################################
 
-        #########################################################
-        #FASE 3: Selecao -> 6 grupos dos melhores 20 elementos (nos)
-        
-        
-        
-#        print "node id %d with degree %d" % (NI.GetId(), NI.GetDeg())
-    # for EI in G.Edges():
-    #     print "edge (%d, %d)" % (EI.GetSrcNId(), EI.GetDstNId())
-    # Graph = snap.GenRndGnm(snap.PNGraph, 50, 500)
-    # nodes = snap.TIntV()
-    # for N in Graph.GetNI(0).GetOutEdges():
-    #     print N
-    #      nodes.Add(N)
-    #print nodes
+        # Ranqueamento, em ordem Decrescente de Grau
+        lista = []
+        novaLstGrupo = []
+        for g in lstGrupoGrafo:
+            for h in g.Nodes():
+                lista.append( (h.GetId(), G.GetNI(h.GetId()).GetDeg()) )
+        ##### print lista
 
+        
+        lstIdGrauOrdenada = sorted(lista, key=lambda grau: grau[1], reverse=True)
+        # print lstIdGrauOrdenada
+        # Lista para armazenar Vetor de Inteiros da biblioteca Snap, com os vertices de cada grupo 
+        lstGrupo = [] 
+        SNAPIntVet = []
+
+        # Gera a Lista de Listas com os nos dos grafos. 
+        for i in range(0,6):
+            lstGrupo.append([])
+            SNAPIntVet.append(snap.TIntV())
+            for j in range(0,20):
+                lstGrupo[i].append( (lstIdGrauOrdenada[j + i * 20])[0] )
+                SNAPIntVet[i].Add(  (lstIdGrauOrdenada[j + i * 20])[0] )
+                # lstGrupo[i].AddNode((lstIdGrauOrdenada[j + i*20])[0])
+        #print lstGrupo
+
+        # Transforma as listas em Grafos, preservando ate as arestas originais
+        for i in range(0,6):
+            lstGrupoGrafo[i] = snap.GetSubGraph(G, SNAPIntVet[i])
+
+        #showEachGroup(lstGrupoGrafo)
+
+        #########################################################
+        #             FASE de Recombinacao (cruzamento)         #
+        #    Usando ponto fixo na metade do grafo, de 2 em 2    #
+        #########################################################
+        
+        count = 0
+        for g in lstGrupo:
+            if count % 2 == 0:
+                A = g[0:10]
+                B = g[10:20]
+            else :
+                C = g[0:10]
+                D = g[10:20]
+                #print ''
+                novaLstGrupo.append( A+D )
+                novaLstGrupo.append( C+B )
+
+            count = count + 1
+            
+        # print ''
+        # print novaLstGrupo
+
+        #########################################################
+        #                     FASE de Mutacao                   #
+        #                                                       #
+        #########################################################
+
+        primeiroGrupo = random.randint(0, 5)
+        segundoGrupo = random.randint(0, 5)
+        primeiroElemento = random.randint(0, 19)
+        segundoElemento = random.randint(0, 19)
+        
+        # print ''
+        # print primeiroGrupo, segundoGrupo, primeiroElemento, segundoElemento
+        # print ''
+        temp = novaLstGrupo[primeiroGrupo][primeiroElemento]
+        novaLstGrupo[primeiroGrupo][primeiroElemento] = novaLstGrupo[segundoGrupo][segundoElemento]
+        novaLstGrupo[segundoGrupo][segundoElemento] = temp
+            
+
+        # Lista para armazenar Vetor de Inteiros da biblioteca Snap, com os vertices de cada grupo 
+        SNAPIntVet = []
+        lstGrupo = []
+        # Gera a Lista de Listas com os nos dos grafos. 
+        for i in range(0,6):
+            lstGrupo.append([])
+            SNAPIntVet.append(snap.TIntV())
+            for j in range(0,20):
+                lstGrupo[i].append( novaLstGrupo[i][j] )
+                SNAPIntVet[i].Add(  novaLstGrupo[i][j] )
+                # lstGrupo[i].AddNode((lstIdGrauOrdenada[j + i*20])[0])
+
+        # Transforma as listas em Grafos, preservando ate as arestas originais
+        #lstGrupoGrafo = []
+        for i in range(0,6):
+            lstGrupoGrafo[i] = snap.GetSubGraph(G, SNAPIntVet[i])
+
+        # Mostra as Listas com os nos de cada grupo (subgrafo) e sua densidade
+        
+    if not flag :
+        print ''
+        print 'Resultado na iteracao ', it
+        print 'Subgrafo correspondente: '
+        print lstGrupo[indiceMaior]
+        print 'Densidade do maior grafo atingido: ', maior
 
 
 main()
