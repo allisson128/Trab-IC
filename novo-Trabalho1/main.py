@@ -1,8 +1,18 @@
 import snap
 import random
 
+
+def bin2graph(lstbin, lstids, graph):
+
+    SNAPIntVet = snap.TIntV()
+    for i in range(0, len(lstids)):
+        if lstbin[i] == 1:
+            SNAPIntVet.Add(int(lstids[i]))
+    return snap.GetSubGraph(graph, SNAPIntVet) 
+
 def ffitness (Graph):
     return 2.*Graph.GetEdges()/((Graph.GetNodes()-1)*Graph.GetNodes())
+    # return Graph.GetNodes() * 2.*Graph.GetEdges()/((Graph.GetNodes()-1)*Graph.GetNodes())
 
 # Lista de Tuplas ( ID, Grau ) de todos os vertices do grafo G
 def lstTuplasIdGrau(graph):
@@ -19,8 +29,9 @@ def lstDensidadeGrafos(listaDeGrafos):
 
 def main():
     
+    populationSize = 300
     G = snap.TUNGraph.New() # Grafo Nao direcionado
-
+    lstTotalIds = []
     ##########################################################
     #                                                        #
     # FASE de Inicializacao do grafo G a partir dos arquivos #
@@ -32,6 +43,7 @@ def main():
         for line in file:
             v = line.rstrip('\n')
             G.AddNode(int(v))
+            lstTotalIds.append(v)
             # print v 
 
     # Le e grava Arestas no grafo:
@@ -57,31 +69,39 @@ def main():
     ########################################################
 
     # Lista de grafos, onde cada um sera um dos grupos:
-    lstGrupoGrafo = [snap.TUNGraph.New() for g in range(0,6)] #6 grupos, onde cada grupo eh um subgrafo Gi
+    # lstGrupoGrafo = [snap.TUNGraph.New() for g in range(0,6)] #6 grupos, onde cada grupo eh um subgrafo Gi
+
+    # Population de Solucoes
+    population = []
+
     # Lista de Listas com os nos dos grafos. 
-    lstGrupo = [] # Serao 6 grupos, onde cada grupo serah uma sublista
+    lstGrupos = [] # Serao 6 grupos, onde cada grupo serah uma sublista
+
     # Lista de Tuplas ( ID, Grau ) de todos os vertices do grafo G
-    lstIdGrau = lstTuplasIdGrau(G)
+    # lstIdGrau = lstTuplasIdGrau(G)
+
     # Mesma lista, ordenada por grau
-    lstIdGrauOrdenada = sorted(lstIdGrau, key=lambda grau: grau[1], reverse=True)
+    # lstIdGrauOrdenada = sorted(lstIdGrau, key=lambda grau: grau[1], reverse=True)
+
     ###### print lstIdGrauOrdenada
     # Lista para armazenar Vetor de Inteiros da biblioteca Snap, com os vertices de cada grupo 
     SNAPIntVet = []
 
     # Gera a Lista de Listas com os nos dos grafos. 
-    for i in range(0,6):
-        lstGrupo.append([])
-        SNAPIntVet.append(snap.TIntV())
-        for j in range(0,20):
-            lstGrupo[i].append( (lstIdGrauOrdenada[j + i * 20])[0] )
-            SNAPIntVet[i].Add(  (lstIdGrauOrdenada[j + i * 20])[0] )
-            # lstGrupo[i].AddNode((lstIdGrauOrdenada[j + i*20])[0])
+    # for i in range(0,6):
+    #     lstGrupo.append([])
+    #     SNAPIntVet.append(snap.TIntV())
+    #     for j in range(0,20):
+    #         lstGrupo[i].append( (lstIdGrauOrdenada[j + i * 20])[0] )
+    #         SNAPIntVet[i].Add(  (lstIdGrauOrdenada[j + i * 20])[0] )
+    #         # lstGrupo[i].AddNode((lstIdGrauOrdenada[j + i*20])[0])
 
-    # Transforma as listas em Grafos, preservando ate as arestas originais
-    for i in range(0,6):
-        lstGrupoGrafo[i] = snap.GetSubGraph(G, SNAPIntVet[i])
+    # Gera a Population aleatoria
+    for i in range(0,populationSize):
+        population.append([])
+        for j in range(0,len(lstTotalIds)):
+            population[i].append( random.randint(0,1) )
 
-    
     #############################################################  
     #                                              --->Fim      #  
     #                                              |            #
@@ -92,7 +112,7 @@ def main():
 
     flag = 0 #indica se saiu do loop com fracasso
 
-    for it in range(0,2000): #Limite de 20 iteracoes
+    for it in range(0,1): #Limite de 20 iteracoes
 
         #########################################################
         #                   FASE de Avaliacao                   #
@@ -102,40 +122,49 @@ def main():
         #########################################################
         
         # Mostra as Listas com os nos de cada grupo (subgrafo) e sua densidade
-        showEachGroup(lstGrupoGrafo)
+        # showEachGroup(lstGrupoGrafo)
+
+
+        vetnotas = []
+        for i in range(0,populationSize):
+            vetnotas.append( ffitness( bin2graph(population[i], lstTotalIds, G) ) )
+
+        print vetnotas
+        maior = max(vetnotas)
+        indiceMaior = vetnotas.index(maior)
 
         ########### Grafo de Maior Densidade ####################
-        maior = segundoMaior = 0
-        indiceMaior = indiceSegundoMaior = 0
-        count = 0
-        for g in lstGrupoGrafo:
-            nota = ffitness(g) 
-            if nota > maior :
-                segundoMaior = maior
-                maior = nota
-                indiceMaior = indiceSegundoMaior = count
-            elif nota > segundoMaior:
-                segundoMaior = nota
-                indiceSegundoMaior = count
-            count = count + 1
+        # maior = segundoMaior = 0
+        # indiceMaior = indiceSegundoMaior = 0
+        # count = 0
+        # for g in lstGrupoGrafo:
+        #     nota = ffitness(g) 
+        #     if nota > maior :
+        #         segundoMaior = maior
+        #         maior = nota
+        #         indiceMaior = indiceSegundoMaior = count
+        #     elif nota > segundoMaior:
+        #         segundoMaior = nota
+        #         indiceSegundoMaior = count
+        #     count = count + 1
 
         ##### print maior, indiceMaior, segundoMaior, indiceSegundoMaior
 
         ########### Grafo de Menor Densidade ####################
-        menor = segundoMenor = 2
-        indiceMenor = indiceSegundoMenor = 0
-        count = 0
-        for g in lstGrupoGrafo:
-            nota = ffitness(g) 
-            if nota < menor :
-                segundoMenor = menor
-                menor = nota
-                indiceMenor = indiceSegundoMenor = count
+        # menor = segundoMenor = 2
+        # indiceMenor = indiceSegundoMenor = 0
+        # count = 0
+        # for g in lstGrupoGrafo:
+        #     nota = ffitness(g) 
+        #     if nota < menor :
+        #         segundoMenor = menor
+        #         menor = nota
+        #         indiceMenor = indiceSegundoMenor = count
                 
-            elif nota < segundoMenor:
-                segundoMenor = nota
-                indiceSegundoMenor = count
-            count = count + 1
+        #     elif nota < segundoMenor:
+        #         segundoMenor = nota
+        #         indiceSegundoMenor = count
+        #     count = count + 1
 
         ##### print menor, indiceMenor, segundoMenor, indiceSegundoMenor
 
@@ -150,8 +179,8 @@ def main():
             print ''
             print 'Resultado Aceitavel na iteracao ', it
             print 'Subgrafo correspondente: '
-            print lstGrupo[indiceMaior]
-            print 'Densidade do grafo', maior, ' maior que 0.9'
+            print lstTotalIds[indiceMaior]
+            print 'Densidade do grafo', maior, ' no indice ', indiceMaior
             flag = 1
             break
 
