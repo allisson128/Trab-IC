@@ -25,7 +25,7 @@ def main():
     #
     nroCandidatos = 500 #Populcao de solucoes candidatas
     grupoSize = 10
-    pfixoflag = 1
+    pfixoflag = 1 #1 para um ponto fixo, caso contrario usara dois pontos fixos
     mutRate = 0.01 #percentual de vezes  que ocorre mutacao, em cima de nroCandidatos
     #
     ##########################################################
@@ -208,7 +208,7 @@ def main():
 
 
                 # Determina se o ponto fixo sera unico, ou nao
-                if pfixoflag == 0:
+                if pfixoflag == 1:
                     pfixoDois = pfixoUm
                 else:
                     pfixoDois = random.randint(1,223)
