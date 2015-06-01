@@ -23,9 +23,10 @@ def main():
     # Variaveis de Configuracao
     ##########################################################
     #
-    nroCandidatos = 500 #Populcao de solucoes candidatas
+    nroCandidatos = 800 #Populcao de solucoes candidatas
     grupoSize = 10
     pfixoflag = 1 #1 para um ponto fixo, caso contrario usara dois pontos fixos
+    rank = True
     mutRate = 0.01 #percentual de vezes  que ocorre mutacao, em cima de nroCandidatos
     #
     ##########################################################
@@ -52,10 +53,8 @@ def main():
         dupla = e.split()
         G.AddEdge(int(dupla[0]), int(dupla[1]))
 
-    print lstTotalIds
-
-    print "G: Nodes %d, Edges %d" % (G.GetNodes(), G.GetEdges())
-    print ffitness(G)
+    # print "G: Nodes %d, Edges %d" % (G.GetNodes(), G.GetEdges())
+    # print ffitness(G)
 
     ########################################################
     #                                                      #
@@ -76,15 +75,6 @@ def main():
 
     # Lista para armazenar Vetor de Inteiros da biblioteca Snap, com os vertices de cada grupo 
     SNAPIntVet = []
-
-    # Gera a Lista de Listas com os nos dos grafos. 
-    # for i in range(0,6):
-    #     lstGrupo.append([])
-    #     SNAPIntVet.append(snap.TIntV())
-    #     for j in range(0,20):
-    #         lstGrupo[i].append( (lstIdGrauOrdenada[j + i * 20])[0] )
-    #         SNAPIntVet[i].Add(  (lstIdGrauOrdenada[j + i * 20])[0] )
-    #         # lstGrupo[i].AddNode((lstIdGrauOrdenada[j + i*20])[0])
 
     # Gera a solucoes candidatas aleatorias
     for i in range(0,nroCandidatos):
@@ -134,7 +124,6 @@ def main():
 
         elif it > 1500:
             break
-            
 
 
         #########################################################
@@ -142,6 +131,7 @@ def main():
         #     Agrupa os elementos de 10 em 10 ate o valor total #
         # de candidatos ser atingido.                           #
         #########################################################
+
 
 
         novosCandidatos = []
@@ -202,7 +192,12 @@ def main():
             
             # Insere os novos candidatos recombinados  no novo Grupo 
             # eliminando os 2 piores elementos
-            for i in range(0,(grupoSize/2) - 1):
+            if rank:
+                iteracoes = (grupoSize/2) - 1
+            else:
+                iteracoes = (grupoSize/2)
+
+            for i in range(0,iteracoes):
 
                 pfixoUm = random.randint(1,223)
 
@@ -214,13 +209,15 @@ def main():
                     pfixoDois = random.randint(1,223)
 
                 k = k + 1
-                while k == indiceMenor or k == indiceSegundoMenor:
-                    k = k + 1
+                if rank:
+                    while k == indiceMenor or k == indiceSegundoMenor:
+                        k = k + 1
                 candidatoUm = grupo[k]
 
                 l = l - 1
-                while l == indiceMenor or l == indiceSegundoMenor:
-                    l = l - 1
+                if rank:
+                    while l == indiceMenor or l == indiceSegundoMenor:
+                        l = l - 1
                 candidatoDois = grupo[l]
 
                 novoCandidatoUm = []
@@ -272,12 +269,10 @@ def main():
     print 'Densidade do grafo', maior, ' no indice ', indiceMaior
 
     labels = snap.TIntStrH()
-    print 'danada'
     for NI in G.Nodes():
-        print 'roda'
         labels[NI.GetId()] = str(NI.GetId())
-    print 'doido'
-    snap.DrawGViz(bin2graph(lstCandidatos[indiceMaior],lstTotalIds, G), snap.gvlDot, "output.png", " ", labels)
+    print 'Grafo.png'
+    snap.DrawGViz(bin2graph(lstCandidatos[indiceMaior],lstTotalIds, G), snap.gvlDot, "grafo.png", "subgrafo de densidade = 1", labels)
 
 
 
