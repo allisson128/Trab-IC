@@ -43,6 +43,7 @@ def main(argv):
     inf = 500000 
 
     # Restricoes do enunciado:
+    topologia = 1 #1 -> anel e 0 -> estrela
     S = 10              #numero de particulas
     X = velocmax = 0.2
     alfa = 0.5         # inercia
@@ -64,14 +65,20 @@ def main(argv):
     pcost = []
     g = [inf, inf]
     gcost = inf
-    ghist = [] #hisorico do 'melhore global' do enxame
+    ghist = [] #historico do 'melhore global' do enxame
+
+    anel = []
+    anelcost = []
 
     for i in range(0, S):
 
         x.append([random.uniform(minconstedge,maxconstedge), 
                   random.uniform(minconstedge,maxconstedge)])
         p.append(x[i])
+        anel.append(p[i])
         pcost.append(cost(x[i][0], x[i][1]))
+        anelcost.append(pcost[i])
+
         if cost(p[i][0], p[i][1]) < gcost:
             g[0] = p[i][0]
             g[1] = p[i][1]
@@ -110,29 +117,38 @@ def main(argv):
                 fi_g = random.uniform(0,1)
 
             for d in range(0, dimensoes):
-                v[i][d] = X * (alfa * v[i][d] + rp * fi_p * (p[i][d] - x[i][d]) + rg * fi_g * (g[d] - x[i][d]) )
+
+                if topologia == 1: #anel
+                    v[i][d] = X * (alfa * v[i][d] + rp * fi_p * (p[i][d] - x[i][d]) + rg * fi_g * (anel[i][d] - x[i][d]) )
+                else: #global
+                    v[i][d] = X * (alfa * v[i][d] + rp * fi_p * (p[i][d] - x[i][d]) + rg * fi_g * (g[d] - x[i][d]) )
                 # if v[i][d] > velocmax:
                 #     v[i][d] = velocmax
                     #print 'Velocidade MAX ultrapassada'
                 x[i][d] = x[i][d] + v[i][d]
 
-            if cost(x[i][0], x[i][1]) < pcost:
+            if cost(x[i][0], x[i][1]) < pcost[i]:
                 p[i][0] = x[i][0]
                 p[i][1] = x[i][1]
-                pcost = cost(p[i][0], p[i][1])
+                pcost[i] = cost(p[i][0], p[i][1])
 
                 if cost(p[i][0], p[i][1]) < gcost:
                     g[0] = p[i][0]
                     g[1] = p[i][1]
                     gcost = cost(g[0], g[1])
                     ghist.append(gcost)
+                if topologia == 1: #anel
+                    for j in range(0,S):
+                        indicemenor = (S+j+1)%S
+                        if pcost[(S+j)%S] < pcost[indicemenor]:
+                            indicemenor = (S+j)%S
+                        if pcost[(S+j-1)%S] < pcost[indicemenor]:
+                            indicemenor = (S+j-1)%S
+                        anel[j] = p[indicemenor]
+                        anelcost[j] = pcost[indicemenor]
+                    
         it = it + 1
-        # print 'g:', it, cost(g[0], g[1])
-        # print g
 
-    # print 'v:'
-    # print v[0]
-    # print v[1]
     print 'global'
     print g, cost(g[0], g[1])
 
@@ -159,8 +175,5 @@ def main(argv):
     pl.xlabel('Iteracoes')
     pl.plot(ghist)
 
-    # pl.plot(ghist, np.arange(0,tempo,ghist[len(ghist)-1]/len(ghist)-1))
-    # pl.scatter([x[i][0] for i in range(0,S)],
-    #            [x[i][1] for i in range(0,S)])
     pl.show()
 main(sys.argv)
