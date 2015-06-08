@@ -155,7 +155,7 @@ def main(argv):
     pl.show()
 
 
-    pl.ylabel('Funcao custo')
+p    pl.ylabel('Funcao custo')
     pl.xlabel('Iteracoes')
     pl.plot(ghist)
 
