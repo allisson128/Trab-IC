@@ -11,7 +11,7 @@ from math import *
 angulo30graus = 0.52
 angulo60graus = 1.05
 
-anguloMuitoPositivo= (angulo30graus, angulo60graus)
+anguloMuitoPositivo = (angulo30graus, angulo60graus)
 
 anguloPositivo = (0.0, angulo30graus)
 
@@ -142,7 +142,7 @@ class Game(object):
 	# Definiciao de variaveis de controle do pendulo
 	tempoInicial = 0.0
 	#Tempo max em segundos para execucao do jogo
-	tempoMaximo = 10
+	tempoMaximo = 5
 	dt = 0.01
 	#-----------------------------------------------
 
@@ -150,7 +150,8 @@ class Game(object):
 	count=0
 	Vars=[]
 	T=[]
-	angulo_inicial = 0.0
+	#angulo_inicial = 0.0
+	angulo_inicial = 0.05
 	f = 0.0
 	X=[angulo_inicial,0,0,0]
 
